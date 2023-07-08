@@ -1,7 +1,6 @@
 const url = require('url');
 const http = require('http');
 const path = require('path');
-
 const server = new http.Server();
 
 server.on('request', (req, res) => {
