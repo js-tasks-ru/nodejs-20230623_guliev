@@ -14,19 +14,24 @@ server.on('request', (req, res) => {
     case 'GET':
       const isNested = pathname.includes('/');
 
-      if(isNested){
+      if (isNested) {
         res.statusCode = 400;
         res.end();
       } else {
-        fs.readFile(filepath, (err, data) => {
-          if (err) {
-            res.statusCode = 404;
-            res.end();
-          } else {
-            res.statusCode = 200;
-            res.end(data);
-          }
-        });
+        if (filepath.includes('/')) {
+          res.statusCode = 404;
+          res.end();
+        }
+
+        const readStream = fs.createReadStream(filepath);
+
+        readStream.on('error', () => {
+          res.statusCode = 404;
+          res.end();
+        }).on('data', (chunk) => {
+          res.statusCode = 200;
+          res.end(chunk);
+        })
       }
       break;
     default:
