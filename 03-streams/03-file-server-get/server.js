@@ -16,24 +16,27 @@ server.on('request', (req, res) => {
 
       if (isNested) {
         res.statusCode = 400;
-        res.end();
-      } else {
-        if (filepath.includes('/')) {
-          res.statusCode = 404;
-          res.end();
-        }
-
-        const readStream = fs.createReadStream(filepath);
-
-        readStream.on('error', () => {
-          res.statusCode = 404;
-          res.end();
-        }).on('data', (chunk) => {
-          res.statusCode = 200;
-          res.end(chunk);
-        })
+        res.end('Nested paths are not allowed');
+        return;
       }
+
+      fs.access(filepath, fs.constants.F_OK, (err) => {
+        if (err) {
+          res.statusCode = 404;
+          res.end('File not found');
+          return;
+        }
+        const readStream = fs.createReadStream(filepath);
+        readStream.on('error', () => {
+          res.statusCode = 500;
+          res.end('Server error');
+          return;
+        });
+        res.statusCode = 200;
+        readStream.pipe(res);
+      });
       break;
+      
     default:
       res.statusCode = 501;
       res.end('Not implemented');
